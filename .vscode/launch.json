@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:FVendors}",
+      "name": "Debug FVendorsClient",
+      "program": "${workspaceFolder:FVendors}/.build/debug/FVendorsClient",
+      "preLaunchTask": "swift: Build Debug FVendorsClient"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:FVendors}",
+      "name": "Release FVendorsClient",
+      "program": "${workspaceFolder:FVendors}/.build/release/FVendorsClient",
+      "preLaunchTask": "swift: Build Release FVendorsClient"
+    }
+  ]
+}
