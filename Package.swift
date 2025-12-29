@@ -18,6 +18,8 @@ let package = Package(
         // Dependency Clients
         .library(
             name: "FVendors",
+            targets: ["FVendors"]
+        ),
     ],
     dependencies: [
         .package(
@@ -31,11 +33,7 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-log",
             from: "1.6.0"
-        ),
-            targets: ["FVendors"])
-    ],
-    dependencies: [
-    
+        )
     ],
     targets: [
         // MARK: - UI Utilities

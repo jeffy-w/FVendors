@@ -22,6 +22,7 @@ extension FWrapper where Base == Color {
     /// - Parameters:
     ///   - light: 日间模式颜色的十六进制字符串
     ///   - dark: 夜间模式颜色的十六进制字符串
+#if canImport(UIKit)
     public static func system(light: String, dark: String) -> Color {
         Color.init(
             uiColor: UIColor { traitCollection in
@@ -33,6 +34,7 @@ extension FWrapper where Base == Color {
                 }
             })
     }
+#endif
 
     public static func hex(_ hexString: String, alpha: Double = 1) -> Color {
         let hex = hexString.trimmingCharacters(
