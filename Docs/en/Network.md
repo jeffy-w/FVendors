@@ -417,7 +417,7 @@ extension NetworkClient {
 ## Related Resources
 
 - [Alamofire Documentation](https://github.com/Alamofire/Alamofire) - Underlying networking library
-- [NetworkClient.swift](../Sources/FVendorsClients/NetworkClient.swift) - Core interface
-- [NetworkClientLive.swift](../Sources/FVendorsClientsLive/NetworkClientLive.swift) - Production implementation
-- [NetworkClientTests.swift](../Tests/FVendorsClientsTests/NetworkClientTests.swift) - Test examples
-- [AppError.swift](../Sources/FVendorsModels/AppError.swift) - Error type definitions
+- [NetworkClient.swift](../../Sources/FVendorsClients/NetworkClient.swift) - Core interface
+- [NetworkClientLive.swift](../../Sources/FVendorsClientsLive/NetworkClientLive.swift) - Production implementation
+- [NetworkClientTests.swift](../../Tests/FVendorsClientsTests/NetworkClientTests.swift) - Test examples
+- [AppError.swift](../../Sources/FVendorsModels/AppError.swift) - Error type definitions

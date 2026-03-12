@@ -417,7 +417,7 @@ extension NetworkClient {
 ## 相关资源
 
 - [Alamofire 文档](https://github.com/Alamofire/Alamofire) - 底层网络库
-- [NetworkClient.swift](../Sources/FVendorsClients/NetworkClient.swift) - 核心接口
-- [NetworkClientLive.swift](../Sources/FVendorsClientsLive/NetworkClientLive.swift) - 生产实现
-- [NetworkClientTests.swift](../Tests/FVendorsClientsTests/NetworkClientTests.swift) - 测试示例
-- [AppError.swift](../Sources/FVendorsModels/AppError.swift) - 错误类型定义
+- [NetworkClient.swift](../../Sources/FVendorsClients/NetworkClient.swift) - 核心接口
+- [NetworkClientLive.swift](../../Sources/FVendorsClientsLive/NetworkClientLive.swift) - 生产实现
+- [NetworkClientTests.swift](../../Tests/FVendorsClientsTests/NetworkClientTests.swift) - 测试示例
+- [AppError.swift](../../Sources/FVendorsModels/AppError.swift) - 错误类型定义

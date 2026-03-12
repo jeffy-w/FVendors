@@ -241,7 +241,7 @@ extension CacheClient {
 
 ## 相关资源
 
-- [CacheClient.swift](../Sources/FVendorsClients/CacheClient.swift) - 核心接口
-- [CacheClient+Expiration.swift](../Sources/FVendorsClients/CacheClient+Expiration.swift) - TTL 逻辑
-- [CacheClientLive.swift](../Sources/FVendorsClientsLive/CacheClientLive.swift) - 文件实现
-- [CacheClientTests.swift](../Tests/FVendorsClientsTests/CacheClientTests.swift) - 测试示例
+- [CacheClient.swift](../../Sources/FVendorsClients/CacheClient.swift) - 核心接口
+- [CacheClient+Expiration.swift](../../Sources/FVendorsClients/CacheClient+Expiration.swift) - TTL 逻辑
+- [CacheClientLive.swift](../../Sources/FVendorsClientsLive/CacheClientLive.swift) - 文件实现
+- [CacheClientTests.swift](../../Tests/FVendorsClientsTests/CacheClientTests.swift) - 测试示例

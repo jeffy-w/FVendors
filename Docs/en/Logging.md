@@ -157,5 +157,5 @@ extension LoggerClient {
 ## Related Resources
 
 - [apple/swift-log](https://github.com/apple/swift-log) - Underlying logging library
-- [LogLevel.swift](../Sources/FVendorsModels/LogLevel.swift) - Log level definition
-- [LoggerClientTests.swift](../Tests/FVendorsClientsTests/LoggerClientTests.swift) - Test examples
+- [LogLevel.swift](../../Sources/FVendorsModels/LogLevel.swift) - Log level definition
+- [LoggerClientTests.swift](../../Tests/FVendorsClientsTests/LoggerClientTests.swift) - Test examples

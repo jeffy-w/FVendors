@@ -241,7 +241,7 @@ extension CacheClient {
 
 ## Related Resources
 
-- [CacheClient.swift](../Sources/FVendorsClients/CacheClient.swift) - Core interface
-- [CacheClient+Expiration.swift](../Sources/FVendorsClients/CacheClient+Expiration.swift) - TTL logic
-- [CacheClientLive.swift](../Sources/FVendorsClientsLive/CacheClientLive.swift) - File implementation
-- [CacheClientTests.swift](../Tests/FVendorsClientsTests/CacheClientTests.swift) - Test examples
+- [CacheClient.swift](../../Sources/FVendorsClients/CacheClient.swift) - Core interface
+- [CacheClient+Expiration.swift](../../Sources/FVendorsClients/CacheClient+Expiration.swift) - TTL logic
+- [CacheClientLive.swift](../../Sources/FVendorsClientsLive/CacheClientLive.swift) - File implementation
+- [CacheClientTests.swift](../../Tests/FVendorsClientsTests/CacheClientTests.swift) - Test examples

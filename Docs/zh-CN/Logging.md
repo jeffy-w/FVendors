@@ -157,5 +157,5 @@ extension LoggerClient {
 ## 相关资源
 
 - [apple/swift-log](https://github.com/apple/swift-log) - 底层日志库
-- [LogLevel.swift](../Sources/FVendorsModels/LogLevel.swift) - 日志级别定义
-- [LoggerClientTests.swift](../Tests/FVendorsClientsTests/LoggerClientTests.swift) - 测试示例
+- [LogLevel.swift](../../Sources/FVendorsModels/LogLevel.swift) - 日志级别定义
+- [LoggerClientTests.swift](../../Tests/FVendorsClientsTests/LoggerClientTests.swift) - 测试示例

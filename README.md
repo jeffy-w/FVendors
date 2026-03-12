@@ -2,7 +2,7 @@
 
 [中文文档](README-CN.md)
 
-A lightweight Swift infrastructure package providing essential building blocks for modern iOS, macOS, and watchOS applications.
+A lightweight Swift infrastructure package for modern Apple-platform apps. It provides modular building blocks for logging, networking, caching, error modeling, and a convenience umbrella import for app projects.
 
 ## Documentation
 
@@ -12,23 +12,23 @@ A lightweight Swift infrastructure package providing essential building blocks f
 
 ## Overview
 
-FVendors is an open-source library that offers a clean, modular approach to common app infrastructure needs. It focuses on basic functionality using official Apple frameworks and proven third-party libraries, designed for quick integration into any Swift project.
+FVendors focuses on a small, practical set of infrastructure primitives that are useful in real apps without forcing a heavy architecture. The package favors modular targets, native Swift concurrency, dependency injection, and test-friendly client design.
 
 ### Philosophy
 
-- **Minimal & Focused**: Only essential infrastructure, no bloat
-- **Official Extensions**: Built on Apple's frameworks (OSLog, SwiftData, Foundation)
-- **Swift 6 Ready**: Full concurrency support with strict checking
-- **Testable**: Mock implementations included for all clients
-- **Type-Safe**: Leverages Swift's type system for safer code
+- **Minimal and Focused**: Keep the package small and composable.
+- **Swift 6 Ready**: Designed for strict concurrency checking.
+- **Testable by Default**: Core clients include `noop`, mock, or in-memory variants for tests.
+- **Modular**: Import the umbrella package for convenience or import individual products for tighter control.
+- **Type-Safe**: Use strongly typed APIs for requests, errors, and cache payloads.
 
 ## Features
 
-- **Logging System**: Production-ready logging with OSLog
-- **Network Layer**: Pure Swift networking interface with Alamofire backend
-- **Data Persistence**: Generic SwiftData abstraction for CRUD operations
-- **Error Handling**: Unified error types with user-friendly messages
-- **Testing Utilities**: Mock implementations for all clients
+- **Logging**: Structured logging abstractions with a live implementation backed by `swift-log`.
+- **Networking**: A pure-Swift `NetworkClient` abstraction with an Alamofire-powered live implementation.
+- **Caching**: A file-backed live cache plus in-memory and expiring wrappers for tests and app use.
+- **Error Modeling**: Unified `AppError` and related reason enums for common app flows.
+- **UI Extensions**: Optional SwiftUI/UIKit extensions in `FVendorsExt`.
 
 ## Requirements
 
@@ -38,8 +38,9 @@ FVendors is an open-source library that offers a clean, modular approach to comm
   - macOS 26.0+
   - watchOS 26.0+
 - **Dependencies**:
-  - Alamofire 5.10.0 (networking)
-  - CustomDump 1.3.3 (testing)
+  - Alamofire 5.10.0
+  - swift-log 1.6.0+
+  - CustomDump 1.3.3 (tests)
 
 ## Installation
 
@@ -49,7 +50,7 @@ Add FVendors to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourusername/FVendors.git", from: "1.0.0")
+    .package(url: "https://github.com/WonderJeffy/FVendors.git", from: "1.0.0")
 ]
 ```
 
@@ -59,10 +60,11 @@ Then add the products you need to your target:
 .target(
     name: "YourTarget",
     dependencies: [
-        .product(name: "FVendors", package: "FVendors"),           // UI utilities
-        .product(name: "FVendorsModels", package: "FVendors"),     // Core models
-        .product(name: "FVendorsClients", package: "FVendors"),    // Client interfaces
-        .product(name: "FVendorsClientsLive", package: "FVendors") // Production implementations
+        .product(name: "FVendors", package: "FVendors"),            // Umbrella import for Models + Clients + ClientsLive
+        .product(name: "FVendorsModels", package: "FVendors"),      // Shared models and error types
+        .product(name: "FVendorsClients", package: "FVendors"),     // Abstract client interfaces
+        .product(name: "FVendorsClientsLive", package: "FVendors"), // Live client implementations
+        .product(name: "FVendorsExt", package: "FVendors")          // Optional SwiftUI/UIKit extensions
     ]
 )
 ```
@@ -70,52 +72,67 @@ Then add the products you need to your target:
 ### Xcode Project
 
 1. File → Add Package Dependencies
-2. Enter the repository URL
+2. Enter `https://github.com/WonderJeffy/FVendors.git`
 3. Select the products you need
 
-## Architecture
+## Package Structure
 
-FVendors is organized into 4 distinct modules:
+FVendors currently exposes five library products:
 
-### 1. FVendorsModels
+### 1. `FVendorsModels`
 
-Core data models and types used across the package.
+Shared model types used across the package.
 
-**Contents:**
-- `AppError`: Unified error type with recovery hints
-- `LogLevel`: Logging severity levels
+**Includes:**
+- `AppError`
+- `LogLevel`
+- related error reason enums
 
-### 2. FVendorsClients
+### 2. `FVendorsClients`
 
-Protocol-oriented client interfaces for dependency injection.
+Abstract client interfaces designed for dependency injection and testing.
 
-**Contents:**
-- `LoggerClient`: Logging abstraction
-- `NetworkClient`: HTTP networking abstraction
-- `PersistenceClient<T>`: Generic SwiftData CRUD operations
+**Includes:**
+- `LoggerClient`
+- `NetworkClient`
+- `CacheClient`
+- `APIRequestBuilder`
 
-### 3. FVendorsClientsLive
+### 3. `FVendorsClientsLive`
 
-Production implementations of client interfaces.
+Production implementations of the client interfaces.
 
-**Contents:**
-- `LoggerClient.live`: OSLog-based implementation
-- `NetworkClient.live`: Alamofire-based implementation
-- `PersistenceClient.live(modelContext:)`: SwiftData implementation
+**Includes:**
+- `LoggerClient.live`
+- `NetworkClient.live`
+- `CacheClient.live`
 
-### 4. FVendors
+### 4. `FVendorsExt`
 
-UI utilities and extensions (currently minimal, focused on core infrastructure).
+Optional SwiftUI/UIKit extensions and wrappers.
+
+**Includes:**
+- `Color` extensions
+- `UIColor` extensions
+- `FWrapper`
+
+### 5. `FVendors`
+
+A convenience umbrella product that re-exports:
+
+```swift
+import FVendors // Re-exports Models + Clients + ClientsLive
+```
+
+Use `FVendors` when you want the fastest setup in an app target. Use the smaller products when you want stricter module boundaries.
 
 ## Quick Start
 
-### 1. Logging
+### Logging
 
 ```swift
-import FVendorsClients
-import FVendorsClientsLive
+import FVendors
 
-// Use in production
 let logger: LoggerClient = .live
 
 logger.debug("Debug information")
@@ -123,240 +140,154 @@ logger.info("General information")
 logger.warning("Warning message")
 logger.error("Error occurred")
 logger.critical("Critical issue")
-
-// Use in tests
-let logger: LoggerClient = .noop
 ```
 
-### 2. Networking
+### Networking
 
 ```swift
-import FVendorsClients
-import FVendorsClientsLive
+import FVendors
 import Foundation
 
-// Setup
-let networkClient: NetworkClient = .live
-
-// Simple request
-let url = URL(string: "https://api.example.com/data")!
-let request = URLRequest(url: url)
-let data = try await networkClient.request(request)
-
-// Request with JSON decoding
 struct User: Codable {
     let id: Int
     let name: String
 }
 
-let users = try await networkClient.request(request, as: [User].self)
+let network: NetworkClient = .live
+let url = URL(string: "https://api.example.com/users")!
+let request = URLRequest(url: url)
 
-// POST request with JSON body
-struct CreateUser: Codable {
-    let name: String
-    let email: String
-}
-
-let postRequest = try APIRequestBuilder.buildJSONRequest(
-    url: URL(string: "https://api.example.com/users")!,
-    method: .post,
-    body: CreateUser(name: "John", email: "john@example.com")
-)
-
-let createdUser = try await networkClient.request(postRequest, as: User.self)
+let users = try await network.request(request, as: [User].self)
 ```
 
-### 3. Data Persistence
+### Cache
 
 ```swift
-import FVendorsClients
-import FVendorsClientsLive
-import SwiftData
+import FVendors
 
-// Define your model
-@Model
-final class DiaryEntry {
-    var title: String
-    var content: String
-    var createdAt: Date
-
-    init(title: String, content: String, createdAt: Date = Date()) {
-        self.title = title
-        self.content = content
-        self.createdAt = createdAt
-    }
+struct Session: Codable {
+    let token: String
 }
 
-// Setup SwiftData
-let modelContainer = try ModelContainer(for: DiaryEntry.self)
-let modelContext = modelContainer.mainContext
+let cache: CacheClient = .live
+let session = Session(token: "abc123")
 
-// Create persistence client
-let persistence: PersistenceClient<DiaryEntry> = .live(modelContext: modelContext)
+try await cache.write(session, forKey: "session")
+let cached = try await cache.read(Session.self, forKey: "session")
 
-// CRUD operations
-// Create
-let entry = DiaryEntry(title: "My Day", content: "It was great!")
-try await persistence.insert(entry)
-try await persistence.save()
-
-// Read
-let descriptor = FetchDescriptor<DiaryEntry>(
-    sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-)
-let entries = try await persistence.fetch(descriptor)
-
-// Delete
-try await persistence.delete(entry)
-try await persistence.save()
+let expiringCache = CacheClient.live.expiring(defaultTTL: .seconds(300))
+try await expiringCache.write(session, forKey: "short-lived")
 ```
 
-### 4. Error Handling
+### Error Handling
 
 ```swift
-import FVendorsModels
+import FVendors
+import Foundation
 
-func performNetworkRequest() async {
+func loadUser(using network: NetworkClient) async {
     do {
-        let data = try await networkClient.request(request)
-        // Handle success
+        let request = URLRequest(url: URL(string: "https://api.example.com/users/1")!)
+        let _: Data = try await network.request(request)
+    } catch let error as AppError {
+        print(error.userMessage)
     } catch {
-        let appError = AppError.from(error)
-
-        // Show user-friendly message
-        showAlert(message: appError.userMessage)
-
-        // Check if recoverable (can retry)
-        if appError.isRecoverable {
-            // Show retry button
-        }
-
-        // Handle specific error types
-        switch appError {
-        case .networkError(.noConnection):
-            // Handle offline state
-            break
-        case .networkError(.unauthorized):
-            // Navigate to login
-            break
-        default:
-            break
-        }
+        print(error.localizedDescription)
     }
 }
 ```
 
 ## Testing
 
-All clients include testing utilities:
+The package includes test-friendly variants for common app scenarios.
 
-### Mock Logger
+### Logger tests
 
 ```swift
-import FVendorsClients
+import FVendors
 
-// No-op logger for tests
-let logger: LoggerClient = .noop
-
-// Collecting logger to verify log messages
 let storage = LogStorage()
 let logger: LoggerClient = .collecting(storage: storage)
 
-// Perform actions
 logger.info("Test message")
 
-// Verify
 await MainActor.run {
     assert(storage.logs.count == 1)
-    assert(storage.logs[0].0 == "Test message")
-    assert(storage.logs[0].1 == .info)
 }
 ```
 
-### Mock Network Client
+### Network tests
 
 ```swift
 import FVendorsClients
+import Foundation
 
-// No-op network client
-let network: NetworkClient = .noop
-
-// Custom mock response
-let network: NetworkClient = .mock { request in
-    let response = ["id": 1, "name": "Test"]
-    return try JSONEncoder().encode(response)
+let network: NetworkClient = .mock { _ in
+    try JSONEncoder().encode(["message": "success"])
 }
 ```
 
-### Mock Persistence
+### Cache tests
 
 ```swift
-import FVendorsClients
+import FVendors
+import Foundation
 
-// Empty storage
-let persistence: PersistenceClient<DiaryEntry> = .mock()
-
-// Pre-populated storage
-let testEntries = [
-    DiaryEntry(title: "Test 1", content: "Content 1"),
-    DiaryEntry(title: "Test 2", content: "Content 2")
-]
-let persistence: PersistenceClient<DiaryEntry> = .mock(items: testEntries)
+let cache = CacheClient.inMemory()
+try await cache.writeData(Data("hello".utf8), "greeting")
+let data = try await cache.readData("greeting")
+assert(data == Data("hello".utf8))
 ```
 
 ## Dependency Injection Pattern
 
-FVendors uses a simple, native dependency injection approach:
+FVendors keeps dependency injection simple and native to Swift.
 
 ```swift
-import FVendorsClients
-import FVendorsClientsLive
+import FVendors
+import Foundation
+import Observation
 
 @MainActor
 @Observable
 final class MyViewModel {
     private let logger: LoggerClient
     private let network: NetworkClient
+    private let cache: CacheClient
 
     init(
         logger: LoggerClient = .live,
-        network: NetworkClient = .live
+        network: NetworkClient = .live,
+        cache: CacheClient = .live
     ) {
         self.logger = logger
         self.network = network
+        self.cache = cache
     }
 
     func performAction() async {
         logger.info("Action started")
-        // Use network client
+        _ = try? await network.request(URLRequest(url: URL(string: "https://api.example.com/ping")!))
     }
 }
-
-// Production
-let viewModel = MyViewModel()
-
-// Testing
-let viewModel = MyViewModel(
-    logger: .noop,
-    network: .mock { _ in Data() }
-)
 ```
 
 ## API Request Builder
 
-Helper for building common HTTP requests:
+`APIRequestBuilder` helps build common HTTP requests.
 
 ```swift
 import FVendorsClients
+import Foundation
 
-// Simple GET request
+let url = URL(string: "https://api.example.com/login")!
+
 let getRequest = APIRequestBuilder.buildRequest(
     url: url,
     method: .get,
     headers: ["Authorization": "Bearer token"]
 )
 
-// POST with JSON
 struct LoginRequest: Codable {
     let email: String
     let password: String
@@ -365,108 +296,40 @@ struct LoginRequest: Codable {
 let postRequest = try APIRequestBuilder.buildJSONRequest(
     url: url,
     method: .post,
-    body: LoginRequest(email: "user@example.com", password: "secret"),
-    headers: ["Custom-Header": "value"]
+    body: LoginRequest(email: "user@example.com", password: "secret")
 )
-```
-
-## Advanced Usage
-
-### Custom Error Mapping
-
-```swift
-extension AppError {
-    static func fromMyAPIError(_ error: MyAPIError) -> AppError {
-        switch error {
-        case .invalidCredentials:
-            return .validationError("Invalid email or password")
-        case .accountLocked:
-            return .validationError("Your account has been locked")
-        default:
-            return .unknown(error.localizedDescription)
-        }
-    }
-}
-```
-
-### Logger Categories
-
-```swift
-extension LoggerClient {
-    static func category(_ name: String) -> LoggerClient {
-        LoggerClient(
-            log: { message, level, file, function, line in
-                let logger = Logger(
-                    subsystem: Bundle.main.bundleIdentifier ?? "com.app",
-                    category: name
-                )
-                // Log implementation
-            }
-        )
-    }
-}
-
-let networkLogger: LoggerClient = .category("Network")
-let persistenceLogger: LoggerClient = .category("Persistence")
-```
-
-### Persistence with Predicates
-
-```swift
-// Fetch with filter
-let predicate = #Predicate<DiaryEntry> { entry in
-    entry.createdAt > Date().addingTimeInterval(-86400) // Last 24 hours
-}
-
-let descriptor = FetchDescriptor<DiaryEntry>(
-    predicate: predicate,
-    sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-)
-
-let recentEntries = try await persistence.fetch(descriptor)
 ```
 
 ## Best Practices
 
-1. **Use Dependency Injection**: Always inject clients through initializers
-2. **Prefer .live in Production**: Use live implementations in your app
-3. **Use Mocks in Tests**: Use `.mock()` or `.noop` for testing
-4. **Handle Errors Gracefully**: Use `AppError.userMessage` for UI
-5. **MainActor for Persistence**: SwiftData requires `@MainActor`
-6. **Log Appropriately**: Use correct log levels (debug for verbose, error for actual errors)
+1. **Inject clients** through initializers or environment values.
+2. **Use `FVendors` for fast app setup** and smaller products when you need tighter control.
+3. **Prefer live implementations in production**.
+4. **Use mocks, no-op clients, or in-memory cache in tests**.
+5. **Handle `AppError` close to the UI boundary**.
+6. **Use appropriate log levels** for operational clarity.
 
 ## Example Project
 
-See the [SwiftUI-Template](https://github.com/yourusername/SwiftUI-Template) repository for a complete example demonstrating:
-
-- App architecture with FVendors
-- Dependency injection patterns
-- Testing strategies
-- Real-world usage examples
+See the [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) repository for a complete app-oriented example.
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License - See `LICENSE` for details.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome. Please open an issue or submit a pull request.
 
 ### Guidelines
 
-- Focus on basic, essential functionality
-- Use official Apple frameworks when possible
-- Maintain Swift 6 concurrency compliance
-- Include tests for new features
-- Update documentation
+- Keep features small and essential.
+- Prefer official Apple frameworks when practical.
+- Maintain Swift 6 concurrency compatibility.
+- Include tests for behavior changes.
+- Update documentation when public usage changes.
 
 ## Support
 
-For issues, questions, or suggestions:
-
 - Open an issue on GitHub
 - Check existing issues and discussions
-
----
-
-**FVendors** - Fast, Focused, Foundation for Swift Apps

@@ -11,11 +11,23 @@ let package = Package(
         .watchOS(.v26),
     ],
     products: [
+        .library(
+            name: "FVendorsModels",
+            targets: ["FVendorsModels"]
+        ),
+        .library(
+            name: "FVendorsClients",
+            targets: ["FVendorsClients"]
+        ),
+        .library(
+            name: "FVendorsClientsLive",
+            targets: ["FVendorsClientsLive"]
+        ),
         // UI Utilities
         .library(
             name: "FVendorsExt",
             targets: ["FVendorsExt"]),
-        // Dependency Clients
+        // Umbrella Import
         .library(
             name: "FVendors",
             targets: ["FVendors"]

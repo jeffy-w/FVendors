@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-一个轻量级 Swift 基础设施包，为现代 iOS、macOS 和 watchOS 应用提供基本构建块。
+一个面向现代 Apple 平台应用的轻量级 Swift 基础设施包，提供日志、网络、缓存、错误模型以及便捷聚合导入等常用能力。
 
 ## 文档
 
@@ -10,25 +10,25 @@
 - [缓存文档](Docs/zh-CN/Cache.md) | [Cache Guide](Docs/en/Cache.md)
 - [网络文档](Docs/zh-CN/Network.md) | [Network Guide](Docs/en/Network.md)
 
-## 概述
+## 概览
 
-FVendors 是一个开源库，为常见的应用基础设施需求提供简洁、模块化的解决方案。它专注于使用官方 Apple 框架和经过验证的第三方库实现基础功能，旨在快速集成到任何 Swift 项目中。
+FVendors 专注于一组小而实用的基础设施能力，方便在真实 app 中快速接入，同时避免过重的框架约束。它强调模块化 target、原生 Swift 并发、依赖注入，以及对测试友好的 client 设计。
 
 ### 设计理念
 
-- **最小化与专注**：只包含必要的基础设施，无冗余
-- **官方扩展**：基于 Apple 框架构建（swift-log、Foundation）
-- **Swift 6 就绪**：完整的并发支持与严格检查
-- **可测试**：所有客户端都包含 Mock 实现
-- **类型安全**：利用 Swift 类型系统实现更安全的代码
+- **小而专注**：只提供高频、必要的基础能力。
+- **Swift 6 就绪**：面向严格并发检查设计。
+- **默认可测试**：核心 client 提供 `noop`、mock 或内存实现。
+- **模块化**：既可以一把梭 `import FVendors`，也可以按产品精细导入。
+- **类型安全**：请求、错误、缓存数据都尽量保持强类型。
 
 ## 功能特性
 
-- **日志系统**：基于 swift-log 的生产级日志
-- **网络层**：纯 Swift 网络接口 + Alamofire 后端
-- **缓存系统**：本地 key-value 缓存，支持 TTL 过期
-- **错误处理**：统一的错误类型与用户友好的消息
-- **测试工具**：所有客户端的 Mock 实现
+- **日志**：抽象日志接口，生产实现基于 `swift-log`。
+- **网络**：纯 Swift 的 `NetworkClient` 抽象，live 实现基于 Alamofire。
+- **缓存**：提供文件缓存 live 实现、内存缓存和过期包装器。
+- **错误模型**：统一的 `AppError` 及相关 reason 枚举。
+- **UI 扩展**：可选的 `FVendorsExt`，包含 SwiftUI / UIKit 扩展。
 
 ## 系统要求
 
@@ -38,8 +38,8 @@ FVendors 是一个开源库，为常见的应用基础设施需求提供简洁�
   - macOS 26.0+
   - watchOS 26.0+
 - **依赖**:
-  - Alamofire 5.10.0（网络）
-  - swift-log 1.6.0（日志）
+  - Alamofire 5.10.0
+  - swift-log 1.6.0+
   - CustomDump 1.3.3（测试）
 
 ## 安装
@@ -50,21 +50,21 @@ FVendors 是一个开源库，为常见的应用基础设施需求提供简洁�
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourusername/FVendors.git", from: "1.0.0")
+    .package(url: "https://github.com/WonderJeffy/FVendors.git", from: "1.0.0")
 ]
 ```
 
-然后将需要的产品添加到你的 target：
+然后按需为 target 添加产品：
 
 ```swift
 .target(
     name: "YourTarget",
     dependencies: [
-        .product(name: "FVendors", package: "FVendors"),           // 所有功能（便捷导入）
-        .product(name: "FVendorsModels", package: "FVendors"),     // 核心模型
-        .product(name: "FVendorsClients", package: "FVendors"),    // 客户端接口
-        .product(name: "FVendorsClientsLive", package: "FVendors"), // 生产实现
-        .product(name: "FVendorsExt", package: "FVendors")         // UI 扩展
+        .product(name: "FVendors", package: "FVendors"),            // 聚合导入：Models + Clients + ClientsLive
+        .product(name: "FVendorsModels", package: "FVendors"),      // 共享模型与错误类型
+        .product(name: "FVendorsClients", package: "FVendors"),     // 抽象 client 接口
+        .product(name: "FVendorsClientsLive", package: "FVendors"), // 生产环境实现
+        .product(name: "FVendorsExt", package: "FVendors")          // 可选 UI 扩展
     ]
 )
 ```
@@ -72,55 +72,59 @@ dependencies: [
 ### Xcode 项目
 
 1. File → Add Package Dependencies
-2. 输入仓库 URL
+2. 输入 `https://github.com/WonderJeffy/FVendors.git`
 3. 选择需要的产品
 
-## 架构
+## 包结构
 
-FVendors 组织为 5 个独立模块：
+FVendors 当前公开 5 个 library product：
 
-### 1. FVendorsModels
+### 1. `FVendorsModels`
 
-跨包使用的核心数据模型和类型。
+跨模块共享的模型类型。
 
-**内容：**
-- `AppError`：统一错误类型，带恢复提示
-- `LogLevel`：日志严重级别
+**包含：**
+- `AppError`
+- `LogLevel`
+- 相关错误原因枚举
 
-### 2. FVendorsClients
+### 2. `FVendorsClients`
 
-用于依赖注入的面向协议的客户端接口。
+面向依赖注入和测试的抽象 client 接口。
 
-**内容：**
-- `LoggerClient`：日志抽象
-- `NetworkClient`：HTTP 网络抽象
-- `CacheClient`：本地缓存抽象
+**包含：**
+- `LoggerClient`
+- `NetworkClient`
+- `CacheClient`
+- `APIRequestBuilder`
 
-### 3. FVendorsClientsLive
+### 3. `FVendorsClientsLive`
 
-客户端接口的生产实现。
+client 接口的生产实现。
 
-**内容：**
-- `LoggerClient.live`：基于 swift-log 的实现
-- `NetworkClient.live`：基于 Alamofire 的实现
-- `CacheClient.live`：基于文件系统的实现
+**包含：**
+- `LoggerClient.live`
+- `NetworkClient.live`
+- `CacheClient.live`
 
-### 4. FVendorsExt
+### 4. `FVendorsExt`
 
-SwiftUI 和 UIKit 的 UI 扩展。
+可选的 SwiftUI / UIKit 扩展与包装器。
 
-**内容：**
+**包含：**
 - `Color` 扩展
 - `UIColor` 扩展
-- 通用包装器（`FWrapper`）
+- `FWrapper`
 
-### 5. FVendors
+### 5. `FVendors`
 
-便捷的统一导入模块，重新导出所有客户端。
+便捷聚合产品，会重新导出：
 
 ```swift
-import FVendors  // 导入所有 Clients + ClientsLive + Models
+import FVendors // 重新导出 Models + Clients + ClientsLive
 ```
+
+如果你想快速开始 app 开发，优先使用 `FVendors`；如果你需要更严格的模块边界，再按单独产品导入。
 
 ## 快速开始
 
@@ -129,13 +133,31 @@ import FVendors  // 导入所有 Clients + ClientsLive + Models
 ```swift
 import FVendors
 
-// 生产环境
 let logger = LoggerClient.live
 
 logger.debug("调试消息")
 logger.info("信息消息")
 logger.warning("警告消息")
 logger.error("错误消息")
+logger.critical("严重错误")
+```
+
+### 网络
+
+```swift
+import FVendors
+import Foundation
+
+struct User: Codable {
+    let id: Int
+    let name: String
+}
+
+let network = NetworkClient.live
+let url = URL(string: "https://api.example.com/users")!
+let request = URLRequest(url: url)
+
+let users = try await network.request(request, as: [User].self)
 ```
 
 ### 缓存
@@ -143,154 +165,171 @@ logger.error("错误消息")
 ```swift
 import FVendors
 
+struct Session: Codable {
+    let token: String
+}
+
 let cache = CacheClient.live
+let session = Session(token: "abc123")
 
-// 写入 Codable 对象
-struct User: Codable {
-    let id: String
-    let name: String
-}
+try await cache.write(session, forKey: "session")
+let cached = try await cache.read(Session.self, forKey: "session")
 
-let user = User(id: "123", name: "Alice")
-try await cache.write(user, forKey: "currentUser")
-
-// 读取
-if let cached = try await cache.read(User.self, forKey: "currentUser") {
-    print("缓存的用户：\(cached.name)")
-}
-
-// 带过期时间
-try await cache.write(user, forKey: "session", expiresIn: .seconds(300))
+let expiringCache = CacheClient.live.expiring(defaultTTL: .seconds(300))
+try await expiringCache.write(session, forKey: "short-lived")
 ```
 
-### 网络
+### 错误处理
 
 ```swift
 import FVendors
+import Foundation
 
-let network = NetworkClient.live
-
-// 简单 GET 请求
-let url = URL(string: "https://api.example.com/users")!
-let request = URLRequest(url: url)
-let users = try await network.request(request, as: [User].self)
-
-// POST 带 JSON body
-let createRequest = try APIRequestBuilder.buildJSONRequest(
-    url: url,
-    method: .post,
-    body: User(id: "456", name: "Bob")
-)
-let created = try await network.request(createRequest, as: User.self)
+func loadUser(using network: NetworkClient) async {
+    do {
+        let request = URLRequest(url: URL(string: "https://api.example.com/users/1")!)
+        let _: Data = try await network.request(request)
+    } catch let error as AppError {
+        print(error.userMessage)
+    } catch {
+        print(error.localizedDescription)
+    }
+}
 ```
 
 ## 测试
 
-所有客户端都包含测试友好的实现：
+包内提供了适合测试场景的实现。
+
+### Logger 测试
 
 ```swift
-import Testing
 import FVendors
 
-@Test func testLogging() async {
-    let storage = LogStorage()
-    let logger = LoggerClient.collecting(storage: storage)
-    
-    logger.info("测试消息")
-    
-    try await Task.sleep(for: .milliseconds(10))
-    #expect(storage.logs.count == 1)
-}
+let storage = LogStorage()
+let logger: LoggerClient = .collecting(storage: storage)
 
-@Test func testCache() async throws {
-    let cache = CacheClient.inMemory()
-    
-    try await cache.writeData(Data("test".utf8), "key")
-    let data = try await cache.readData("key")
-    
-    #expect(data == Data("test".utf8))
-}
+logger.info("测试消息")
 
-@Test func testNetwork() async throws {
-    let mock = NetworkClient.mock { _ in
-        try JSONEncoder().encode(["message": "success"])
-    }
-    
-    let response = try await mock.request(
-        URLRequest(url: URL(string: "https://example.com")!),
-        as: [String: String].self
-    )
-    
-    #expect(response["message"] == "success")
+await MainActor.run {
+    assert(storage.logs.count == 1)
 }
+```
+
+### Network 测试
+
+```swift
+import FVendorsClients
+import Foundation
+
+let network: NetworkClient = .mock { _ in
+    try JSONEncoder().encode(["message": "success"])
+}
+```
+
+### Cache 测试
+
+```swift
+import FVendors
+import Foundation
+
+let cache = CacheClient.inMemory()
+try await cache.writeData(Data("hello".utf8), "greeting")
+let data = try await cache.readData("greeting")
+assert(data == Data("hello".utf8))
 ```
 
 ## 依赖注入
 
-所有客户端都设计为依赖注入：
+FVendors 保持简单、原生的依赖注入方式。
 
 ```swift
-struct MyService {
-    let logger: LoggerClient
-    let network: NetworkClient
-    let cache: CacheClient
-    
-    func performTask() async throws {
+import FVendors
+import Foundation
+import Observation
+
+@MainActor
+@Observable
+final class MyViewModel {
+    private let logger: LoggerClient
+    private let network: NetworkClient
+    private let cache: CacheClient
+
+    init(
+        logger: LoggerClient = .live,
+        network: NetworkClient = .live,
+        cache: CacheClient = .live
+    ) {
+        self.logger = logger
+        self.network = network
+        self.cache = cache
+    }
+
+    func performAction() async {
         logger.info("开始任务")
-        
-        let data = try await network.request(...)
-        try await cache.write(data, forKey: "result")
-        
-        logger.info("任务完成")
+        _ = try? await network.request(URLRequest(url: URL(string: "https://api.example.com/ping")!))
     }
 }
-
-// 生产环境
-let service = MyService(
-    logger: .live,
-    network: .live,
-    cache: .live
-)
-
-// 测试环境
-let testService = MyService(
-    logger: .noop,
-    network: .mock { _ in Data() },
-    cache: .inMemory()
-)
 ```
 
-## 错误处理
+## APIRequestBuilder
 
-统一的 `AppError` 类型便于处理：
+`APIRequestBuilder` 用于快速构建常见 HTTP 请求。
 
 ```swift
-do {
-    try await network.request(...)
-} catch let error as AppError {
-    switch error {
-    case .networkError(.noConnection):
-        print("无网络连接")
-    case .networkError(.timeout):
-        print("请求超时")
-    case .persistenceError(.saveFailed):
-        print("保存失败")
-    default:
-        print("错误：\(error.userMessage)")
-    }
+import FVendorsClients
+import Foundation
+
+let url = URL(string: "https://api.example.com/login")!
+
+let getRequest = APIRequestBuilder.buildRequest(
+    url: url,
+    method: .get,
+    headers: ["Authorization": "Bearer token"]
+)
+
+struct LoginRequest: Codable {
+    let email: String
+    let password: String
 }
+
+let postRequest = try APIRequestBuilder.buildJSONRequest(
+    url: url,
+    method: .post,
+    body: LoginRequest(email: "user@example.com", password: "secret")
+)
 ```
 
-## 贡献
+## 最佳实践
 
-欢迎贡献！请提交 issue 或 pull request。
+1. **通过初始化器或环境值注入 client**。
+2. **快速起步优先用 `FVendors`**，需要更细粒度控制时再拆分产品。
+3. **生产环境优先使用 live 实现**。
+4. **测试中使用 mock、noop 或内存缓存**。
+5. **在 UI 边界附近处理 `AppError`**。
+6. **合理选择日志等级**，便于排查问题。
+
+## 示例项目
+
+可参考 [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) 获取更完整的 app 集成示例。
 
 ## 许可证
 
 [MIT License](LICENSE)
 
-## 相关资源
+## 贡献
 
-- [apple/swift-log](https://github.com/apple/swift-log) - 日志框架
-- [Alamofire/Alamofire](https://github.com/Alamofire/Alamofire) - HTTP 网络库
-- [pointfreeco/swift-custom-dump](https://github.com/pointfreeco/swift-custom-dump) - 测试工具
+欢迎贡献。请提交 issue 或 pull request。
+
+### 贡献建议
+
+- 保持功能小而专注
+- 优先使用合适的官方框架
+- 保持 Swift 6 并发兼容性
+- 行为变更要附带测试
+- 公共用法变更要同步更新文档
+
+## 支持
+
+- 在 GitHub 上提交 issue
+- 查看已有 issues 和 discussions
