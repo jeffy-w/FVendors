@@ -19,6 +19,9 @@ final class DemoViewModel {
     var statusMessage = "Idle"
     var lastErrorMessage: String?
     var isLoading = false
+    
+    // Tomato Emojis State
+    var tomatoes: [TomatoEmoji] = []
 
     init(
         logger: LoggerClient = .live,
@@ -28,6 +31,17 @@ final class DemoViewModel {
         self.logger = logger
         self.network = network
         self.cache = cache
+    }
+
+    func spawnTomato() {
+        let newTomato = TomatoEmoji.random()
+        tomatoes.append(newTomato)
+        logger.info("Spawned composite tomato: \(newTomato.eyeType)/\(newTomato.mouthType)")
+    }
+
+    func clearTomatoes() {
+        tomatoes.removeAll()
+        logger.info("Cleared all tomatoes")
     }
 
     func loadUser() async {
