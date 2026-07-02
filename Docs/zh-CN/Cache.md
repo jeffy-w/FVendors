@@ -145,8 +145,8 @@ import FVendors
 
 ### 过期格式
 
-- 使用魔法前缀 `FVCache1:` 标识封装后的数据
-- `CacheEnvelope` 存储：`createdAt`、`expiresAt`、`value`
+- 使用 `FVCache1` 的魔法前缀字节标识封装后的数据
+- `CacheEnvelope` 存储：`expiresAt`、`payload`
 - 读取时检查 `expiresAt`，过期则删除并返回 `nil`
 
 ### 后台清理逻辑
@@ -157,8 +157,12 @@ scheduleBackgroundPurgeIfNeeded()
 
 // 实现
 Task.detached(priority: .background) {
-    try? await Task.sleep(for: .seconds(2))  // 延迟
-    try await purgeExpiredFiles()            // 扫描 & 删除
+    try? await Task.sleep(for: delay)        // 延迟
+    _ = try? FileCacheStore.purgeExpiredFiles(
+        baseURL: baseURL,
+        now: now(),
+        limit: limit
+    )
 }
 ```
 
@@ -224,17 +228,19 @@ extension CacheClient {
 extension CacheClient {
     /// 使用默认 TTL 封装
     public func expiring(
-        defaultTTL: Duration,
-        clock: any Clock<Duration> = ContinuousClock()
+        defaultTTL: Duration? = nil,
+        clock: @escaping @Sendable () -> Date = Date.init
     ) -> CacheClient
 }
 
 extension CacheClient {
     /// 使用自定义 TTL 写入
-    public func write<T: Codable>(
+    public func write<T: Encodable>(
         _ value: T,
         forKey key: String,
-        expiresIn duration: Duration
+        expiresIn ttl: Duration,
+        encoder: JSONEncoder = JSONEncoder(),
+        clock: @escaping @Sendable () -> Date = Date.init
     ) async throws
 }
 ```

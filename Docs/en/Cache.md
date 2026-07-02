@@ -145,8 +145,8 @@ import FVendors
 
 ### Expiration Format
 
-- Uses magic prefix `FVCache1:` to identify wrapped data
-- `CacheEnvelope` stores: `createdAt`, `expiresAt`, `value`
+- Uses the magic prefix bytes for `FVCache1` to identify wrapped data
+- `CacheEnvelope` stores: `expiresAt`, `payload`
 - On read: checks `expiresAt`, removes if expired, returns `nil`
 
 ### Background Purge Logic
@@ -157,8 +157,12 @@ scheduleBackgroundPurgeIfNeeded()
 
 // Implementation
 Task.detached(priority: .background) {
-    try? await Task.sleep(for: .seconds(2))  // Delay
-    try await purgeExpiredFiles()            // Scan & delete
+    try? await Task.sleep(for: delay)        // Delay
+    _ = try? FileCacheStore.purgeExpiredFiles(
+        baseURL: baseURL,
+        now: now(),
+        limit: limit
+    )
 }
 ```
 
@@ -224,17 +228,19 @@ extension CacheClient {
 extension CacheClient {
     /// Wrap with default TTL
     public func expiring(
-        defaultTTL: Duration,
-        clock: any Clock<Duration> = ContinuousClock()
+        defaultTTL: Duration? = nil,
+        clock: @escaping @Sendable () -> Date = Date.init
     ) -> CacheClient
 }
 
 extension CacheClient {
     /// Write with custom TTL
-    public func write<T: Codable>(
+    public func write<T: Encodable>(
         _ value: T,
         forKey key: String,
-        expiresIn duration: Duration
+        expiresIn ttl: Duration,
+        encoder: JSONEncoder = JSONEncoder(),
+        clock: @escaping @Sendable () -> Date = Date.init
     ) async throws
 }
 ```

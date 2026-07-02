@@ -134,10 +134,8 @@ do {
     print("成功：\(user.name)")
 } catch let error as AppError {
     switch error {
-    case .networkError(let message):
-        print("网络失败：\(message)")
-    case .decodingError(let message):
-        print("解码失败：\(message)")
+    case .networkError(let reason):
+        print("网络失败：\(reason.message)")
     default:
         print("其他错误：\(error)")
     }
@@ -149,8 +147,8 @@ do {
 | AppError | 原因 | 处理建议 |
 |----------|------|----------|
 | `.networkError` | 网络失败（无连接、超时、4xx/5xx） | 重试、显示错误提示 |
-| `.decodingError` | JSON 解析失败 | 检查 API 版本、记录日志调试 |
-| `.invalidInput` | 请求无效（错误 URL、缺少参数） | 在请求前验证输入 |
+| `.networkError(.decodingFailed)` | JSON 解析失败 | 检查 API 版本、记录日志调试 |
+| `.unknown` | 未映射的网络错误 | 记录详情并检查底层失败原因 |
 
 ## 高级用法
 
@@ -223,7 +221,7 @@ import FVendors
 
 ```swift
 @Test func testErrorHandling() async throws {
-    let network = NetworkClient.failing(with: .networkError("连接失败"))
+    let network = NetworkClient.failing(with: .networkError(.timeout))
     
     let request = URLRequest(url: URL(string: "https://api.example.com")!)
     
@@ -245,7 +243,6 @@ let network = NetworkClient.noop
 ### 生产实现（基于 Alamofire）
 
 - 使用 [Alamofire](https://github.com/Alamofire/Alamofire) 进行健壮的 HTTP 处理
-- 自动重试瞬时失败
 - 响应验证（状态码检查）
 - 错误映射：`AFError` → `AppError`
 
@@ -262,7 +259,7 @@ let network = NetworkClient.noop
 
 2. **解码**：`request(_:as:) async throws -> T`
    - 使用 `JSONDecoder` 解码响应
-   - 解析失败时抛出 `.decodingError`
+   - 解析失败时抛出 `.networkError(.decodingFailed)`
 
 ## 最佳实践
 

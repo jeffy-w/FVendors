@@ -272,6 +272,19 @@ final class MyViewModel {
 }
 ```
 
+## App 项目接入建议
+
+App target 默认可以从 `import FVendors` 开始，并通过初始化器注入功能需要的 client。这样业务代码可以直接使用 `LoggerClient.live`、`NetworkClient.live`、`CacheClient.live`，但不需要依赖 Alamofire、swift-log 或文件系统实现细节。
+
+需要更严格模块边界时，再按 target 拆分产品：
+
+- `FVendorsModels`：共享错误和值类型。
+- `FVendorsClients`：抽象依赖、mock、请求和缓存辅助能力。
+- `FVendorsClientsLive`：生产环境实现。
+- `FVendorsExt`：可选 SwiftUI/UIKit 辅助扩展。
+
+测试中用 `.noop`、`NetworkClient.mock(returning:)`、`NetworkClient.failing(with:)` 或 `CacheClient.inMemory()` 替换 live client。不要用 `CacheClient` 缓存密码、access token 等敏感信息；这类数据应使用 Keychain 方案。
+
 ## APIRequestBuilder
 
 `APIRequestBuilder` 用于快速构建常见 HTTP 请求。

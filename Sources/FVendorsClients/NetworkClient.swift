@@ -116,4 +116,18 @@ extension NetworkClient {
     ) -> NetworkClient {
         NetworkClient(request: response)
     }
+
+    /// 返回固定数据的 Mock 实现（用于测试）
+    /// - Parameter data: 每次请求返回的数据
+    /// - Returns: NetworkClient 实例
+    public static func mock(returning data: Data) -> NetworkClient {
+        NetworkClient(request: { _ in data })
+    }
+
+    /// 总是抛出指定错误的 Mock 实现（用于测试错误路径）
+    /// - Parameter error: 每次请求抛出的错误
+    /// - Returns: NetworkClient 实例
+    public static func failing(with error: AppError) -> NetworkClient {
+        NetworkClient(request: { _ in throw error })
+    }
 }

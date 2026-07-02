@@ -134,10 +134,8 @@ do {
     print("Success: \(user.name)")
 } catch let error as AppError {
     switch error {
-    case .networkError(let message):
-        print("Network failed: \(message)")
-    case .decodingError(let message):
-        print("Decode failed: \(message)")
+    case .networkError(let reason):
+        print("Network failed: \(reason.message)")
     default:
         print("Other error: \(error)")
     }
@@ -149,8 +147,8 @@ do {
 | AppError | Cause | Handling Suggestion |
 |----------|-------|---------------------|
 | `.networkError` | Network failure (no connection, timeout, 4xx/5xx) | Retry, show error toast |
-| `.decodingError` | JSON parsing failed | Check API version, log for debugging |
-| `.invalidInput` | Invalid request (bad URL, missing params) | Validate input before request |
+| `.networkError(.decodingFailed)` | JSON parsing failed | Check API version, log for debugging |
+| `.unknown` | Unmapped networking error | Log details and inspect the underlying failure |
 
 ## Advanced Usage
 
@@ -223,7 +221,7 @@ import FVendors
 
 ```swift
 @Test func testErrorHandling() async throws {
-    let network = NetworkClient.failing(with: .networkError("Connection failed"))
+    let network = NetworkClient.failing(with: .networkError(.timeout))
     
     let request = URLRequest(url: URL(string: "https://api.example.com")!)
     
@@ -245,7 +243,6 @@ let network = NetworkClient.noop
 ### Production (Alamofire-based)
 
 - Uses [Alamofire](https://github.com/Alamofire/Alamofire) for robust HTTP handling
-- Automatic retry for transient failures
 - Response validation (status code checking)
 - Error mapping: `AFError` → `AppError`
 
@@ -262,7 +259,7 @@ let network = NetworkClient.noop
 
 2. **Decoded**: `request(_:as:) async throws -> T`
    - Uses `JSONDecoder` to decode response
-   - Throws `.decodingError` if parsing fails
+   - Throws `.networkError(.decodingFailed)` if parsing fails
 
 ## Best Practices
 

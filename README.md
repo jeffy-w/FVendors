@@ -272,6 +272,19 @@ final class MyViewModel {
 }
 ```
 
+## App Project Integration
+
+For app targets, start with `import FVendors` and inject the clients your feature needs. This gives the app access to `LoggerClient.live`, `NetworkClient.live`, and `CacheClient.live` without making feature code depend on Alamofire, swift-log, or file-system details.
+
+Use the smaller products when a target should keep stricter boundaries:
+
+- `FVendorsModels` for shared errors and value types.
+- `FVendorsClients` for abstract dependencies, mocks, and request/cache helpers.
+- `FVendorsClientsLive` for production implementations.
+- `FVendorsExt` for optional SwiftUI/UIKit helpers.
+
+In tests, replace live clients with `.noop`, `NetworkClient.mock(returning:)`, `NetworkClient.failing(with:)`, or `CacheClient.inMemory()`. Avoid caching passwords, access tokens, or other sensitive secrets with `CacheClient`; use Keychain-backed storage for those values.
+
 ## API Request Builder
 
 `APIRequestBuilder` helps build common HTTP requests.

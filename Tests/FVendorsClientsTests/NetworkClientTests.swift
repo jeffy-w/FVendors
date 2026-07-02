@@ -47,6 +47,18 @@ struct NetworkClientTests {
         #expect(data == expectedData)
     }
 
+    @Test("Mock returning helper returns fixed data")
+    func mockReturningHelperReturnsFixedData() async throws {
+        let expectedData = Data("fixed".utf8)
+        let client = NetworkClient.mock(returning: expectedData)
+
+        let url = URL(string: "https://api.example.com/test")!
+        let request = URLRequest(url: url)
+        let data = try await client.request(request)
+
+        #expect(data == expectedData)
+    }
+
     @Test("Request with decoding returns correct object")
     func requestWithDecodingReturnsCorrectObject() async throws {
         struct TestResponse: Codable, Equatable {
@@ -124,6 +136,24 @@ struct NetworkClientTests {
                 return
             }
             // 测试通过
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+    }
+
+    @Test("Failing helper throws configured error")
+    func failingHelperThrowsConfiguredError() async throws {
+        let expectedError = AppError.networkError(.timeout)
+        let client = NetworkClient.failing(with: expectedError)
+
+        let url = URL(string: "https://api.example.com/test")!
+        let request = URLRequest(url: url)
+
+        do {
+            _ = try await client.request(request)
+            Issue.record("Should have thrown error")
+        } catch let error as AppError {
+            #expect(error == expectedError)
         } catch {
             Issue.record("Unexpected error type: \(error)")
         }
