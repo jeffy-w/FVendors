@@ -10,6 +10,7 @@ A lightweight Swift infrastructure package for modern Apple-platform apps. It pr
 - [Cache Guide](Docs/en/Cache.md) | [缓存文档](Docs/zh-CN/Cache.md)
 - [Network Guide](Docs/en/Network.md) | [网络文档](Docs/zh-CN/Network.md)
 - [App Foundation Guide](Docs/en/AppFoundation.md) | [0→1 App 基础设施指南](Docs/zh-CN/AppFoundation.md)
+- [Boundary Guide](Docs/en/Boundaries.md) | [模块边界](Docs/zh-CN/Boundaries.md)
 
 ## Overview
 

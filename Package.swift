@@ -53,6 +53,10 @@ let package = Package(
             name: "FVendorsExt",
             path: "Sources/FVendorsExt"
         ),
+        .testTarget(
+            name: "FVendorsExtTests",
+            dependencies: ["FVendorsExt"]
+        ),
 
         // MARK: - Dependency Clients (single import)
         .target(

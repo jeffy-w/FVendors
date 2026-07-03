@@ -10,6 +10,7 @@
 - [缓存文档](Docs/zh-CN/Cache.md) | [Cache Guide](Docs/en/Cache.md)
 - [网络文档](Docs/zh-CN/Network.md) | [Network Guide](Docs/en/Network.md)
 - [0→1 App 基础设施指南](Docs/zh-CN/AppFoundation.md) | [App Foundation Guide](Docs/en/AppFoundation.md)
+- [模块边界](Docs/zh-CN/Boundaries.md) | [Boundary Guide](Docs/en/Boundaries.md)
 
 ## 概览
 
