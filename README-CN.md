@@ -9,10 +9,19 @@
 - [日志文档](Docs/zh-CN/Logging.md) | [Logging Guide](Docs/en/Logging.md)
 - [缓存文档](Docs/zh-CN/Cache.md) | [Cache Guide](Docs/en/Cache.md)
 - [网络文档](Docs/zh-CN/Network.md) | [Network Guide](Docs/en/Network.md)
+- [0→1 App 基础设施指南](Docs/zh-CN/AppFoundation.md) | [App Foundation Guide](Docs/en/AppFoundation.md)
 
 ## 概览
 
 FVendors 专注于一组小而实用的基础设施能力，方便在真实 app 中快速接入，同时避免过重的框架约束。它强调模块化 target、原生 Swift 并发、依赖注入，以及对测试友好的 client 设计。
+
+### 适合使用 FVendors 的场景
+
+当一个新 app 需要日志、网络、缓存、错误模型、依赖注入和测试替身等小而实用的基础设施时，适合使用 FVendors。它的目标是帮助团队尽快开始真实业务开发，而不是绑定一套重型 app 框架。
+
+### 不适合使用 FVendors 的场景
+
+不要把 FVendors 当作路由框架、设计系统、账号/鉴权/支付层或持久化框架。App 专属流程、模板代码和 demo chrome 应留在核心 package 之外。
 
 ### 设计理念
 
@@ -109,7 +118,13 @@ client 接口的生产实现。
 
 ### 4. `FVendorsExt`
 
-可选的 SwiftUI / UIKit 扩展与包装器。
+可选的 SwiftUI / UIKit 扩展与包装器。使用 UI helper 时需要显式导入该产品；`FVendors` 不会重新导出 `FVendorsExt`。
+
+```swift
+import FVendorsExt
+
+let color = Color.f.hex("#3366FF")
+```
 
 **包含：**
 - `Color` 扩展
@@ -124,7 +139,7 @@ client 接口的生产实现。
 import FVendors // 重新导出 Models + Clients + ClientsLive
 ```
 
-如果你想快速开始 app 开发，优先使用 `FVendors`；如果你需要更严格的模块边界，再按单独产品导入。
+如果你想快速接入核心基础设施，优先使用 `FVendors`；UI helper 请显式导入 `FVendorsExt`；如果你需要更严格的模块边界，再按单独产品导入。
 
 ## 快速开始
 
@@ -165,18 +180,18 @@ let users = try await network.request(request, as: [User].self)
 ```swift
 import FVendors
 
-struct Session: Codable {
-    let token: String
+struct UserPreferences: Codable {
+    let theme: String
 }
 
 let cache = CacheClient.live
-let session = Session(token: "abc123")
+let preferences = UserPreferences(theme: "dark")
 
-try await cache.write(session, forKey: "session")
-let cached = try await cache.read(Session.self, forKey: "session")
+try await cache.write(preferences, forKey: "user-preferences")
+let cached = try await cache.read(UserPreferences.self, forKey: "user-preferences")
 
 let expiringCache = CacheClient.live.expiring(defaultTTL: .seconds(300))
-try await expiringCache.write(session, forKey: "short-lived")
+try await expiringCache.write(preferences, forKey: "short-lived-preferences")
 ```
 
 ### 错误处理
@@ -281,7 +296,7 @@ App target 默认可以从 `import FVendors` 开始，并通过初始化器注�
 - `FVendorsModels`：共享错误和值类型。
 - `FVendorsClients`：抽象依赖、mock、请求和缓存辅助能力。
 - `FVendorsClientsLive`：生产环境实现。
-- `FVendorsExt`：可选 SwiftUI/UIKit 辅助扩展。
+- `FVendorsExt`：可选 SwiftUI/UIKit 辅助扩展。迁移提示：使用 `Color.f`、`UIColor.f` 或 `FWrapper` 的 app target 需要显式 `import FVendorsExt`。
 
 测试中用 `.noop`、`NetworkClient.mock(returning:)`、`NetworkClient.failing(with:)` 或 `CacheClient.inMemory()` 替换 live client。不要用 `CacheClient` 缓存密码、access token 等敏感信息；这类数据应使用 Keychain 方案。
 
@@ -315,7 +330,7 @@ let postRequest = try APIRequestBuilder.buildJSONRequest(
 
 ## 最佳实践
 
-1. **通过初始化器或环境值注入 client**。
+1. **通过初始化器或 app 自有环境值注入 client**。
 2. **快速起步优先用 `FVendors`**，需要更细粒度控制时再拆分产品。
 3. **生产环境优先使用 live 实现**。
 4. **测试中使用 mock、noop 或内存缓存**。
@@ -324,7 +339,13 @@ let postRequest = try APIRequestBuilder.buildJSONRequest(
 
 ## 示例项目
 
+仓库包含 repo-local 的 `Demo/` Xcode app，用于展示离线基础设施路径：日志、mock 网络、cache-first 加载和 UI 状态更新。Demo app 保持在 `Package.swift` 之外，不属于 SwiftPM product surface。Demo 中的 Tomato UI 只是 demo chrome，不属于核心 FVendors 验收路径。
+
 可参考 [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) 获取更完整的 app 集成示例。
+
+## Future Client 准入门槛
+
+新增 `EnvironmentClient`、`FeatureFlagClient`、`ReachabilityClient`、`AuthTokenClient` 等 package-owned 便利 API 前，必须有 Demo 或真实 app 反复证明需要，并提供适当的 noop/mock/live 测试友好变体、聚焦测试、中英文文档和明确模块边界理由。App 自己使用 SwiftUI `EnvironmentValues` 仍然是支持的依赖注入模式。
 
 ## 许可证
 

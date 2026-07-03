@@ -75,4 +75,22 @@ struct DemoTests {
         #expect(viewModel.dataSource == .network)
         #expect(await counter.count() == 2)
     }
+
+    @Test("Load user reports error state when network fails")
+    func loadUserReportsErrorState() async throws {
+        let cache = CacheClient.inMemory()
+        let network = NetworkClient.failing(with: AppError.networkError(.noConnection))
+        let viewModel = DemoViewModel(
+            logger: .noop,
+            network: network,
+            cache: cache
+        )
+
+        await viewModel.loadUser()
+
+        #expect(viewModel.user == nil)
+        #expect(viewModel.dataSource == nil)
+        #expect(viewModel.lastErrorMessage != nil)
+        #expect(viewModel.statusMessage.hasPrefix("Failed:"))
+    }
 }

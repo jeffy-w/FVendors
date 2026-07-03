@@ -9,10 +9,19 @@ A lightweight Swift infrastructure package for modern Apple-platform apps. It pr
 - [Logging Guide](Docs/en/Logging.md) | [日志文档](Docs/zh-CN/Logging.md)
 - [Cache Guide](Docs/en/Cache.md) | [缓存文档](Docs/zh-CN/Cache.md)
 - [Network Guide](Docs/en/Network.md) | [网络文档](Docs/zh-CN/Network.md)
+- [App Foundation Guide](Docs/en/AppFoundation.md) | [0→1 App 基础设施指南](Docs/zh-CN/AppFoundation.md)
 
 ## Overview
 
 FVendors focuses on a small, practical set of infrastructure primitives that are useful in real apps without forcing a heavy architecture. The package favors modular targets, native Swift concurrency, dependency injection, and test-friendly client design.
+
+### When to use FVendors
+
+Use FVendors when a new app needs a small infrastructure foundation: logging, networking, caching, error modeling, dependency injection, and test doubles. It is designed to help app teams start real feature work quickly without committing to a heavy app framework.
+
+### When not to use FVendors
+
+Do not treat FVendors as a routing framework, design system, account/auth/payment layer, or persistence framework. App-specific flows, templates, and demo chrome should stay outside the core package surface.
 
 ### Philosophy
 
@@ -109,7 +118,13 @@ Production implementations of the client interfaces.
 
 ### 4. `FVendorsExt`
 
-Optional SwiftUI/UIKit extensions and wrappers.
+Optional SwiftUI/UIKit extensions and wrappers. Import this product explicitly when using UI helpers; `FVendors` does not re-export `FVendorsExt`.
+
+```swift
+import FVendorsExt
+
+let color = Color.f.hex("#3366FF")
+```
 
 **Includes:**
 - `Color` extensions
@@ -124,7 +139,7 @@ A convenience umbrella product that re-exports:
 import FVendors // Re-exports Models + Clients + ClientsLive
 ```
 
-Use `FVendors` when you want the fastest setup in an app target. Use the smaller products when you want stricter module boundaries.
+Use `FVendors` when you want the fastest setup for core infrastructure in an app target. Use `FVendorsExt` explicitly for UI helpers, and use the smaller products when you want stricter module boundaries.
 
 ## Quick Start
 
@@ -165,18 +180,18 @@ let users = try await network.request(request, as: [User].self)
 ```swift
 import FVendors
 
-struct Session: Codable {
-    let token: String
+struct UserPreferences: Codable {
+    let theme: String
 }
 
 let cache: CacheClient = .live
-let session = Session(token: "abc123")
+let preferences = UserPreferences(theme: "dark")
 
-try await cache.write(session, forKey: "session")
-let cached = try await cache.read(Session.self, forKey: "session")
+try await cache.write(preferences, forKey: "user-preferences")
+let cached = try await cache.read(UserPreferences.self, forKey: "user-preferences")
 
 let expiringCache = CacheClient.live.expiring(defaultTTL: .seconds(300))
-try await expiringCache.write(session, forKey: "short-lived")
+try await expiringCache.write(preferences, forKey: "short-lived-preferences")
 ```
 
 ### Error Handling
@@ -281,7 +296,7 @@ Use the smaller products when a target should keep stricter boundaries:
 - `FVendorsModels` for shared errors and value types.
 - `FVendorsClients` for abstract dependencies, mocks, and request/cache helpers.
 - `FVendorsClientsLive` for production implementations.
-- `FVendorsExt` for optional SwiftUI/UIKit helpers.
+- `FVendorsExt` for optional SwiftUI/UIKit helpers. UI helper migration note: app targets that use `Color.f`, `UIColor.f`, or `FWrapper` should add `import FVendorsExt` explicitly.
 
 In tests, replace live clients with `.noop`, `NetworkClient.mock(returning:)`, `NetworkClient.failing(with:)`, or `CacheClient.inMemory()`. Avoid caching passwords, access tokens, or other sensitive secrets with `CacheClient`; use Keychain-backed storage for those values.
 
@@ -315,7 +330,7 @@ let postRequest = try APIRequestBuilder.buildJSONRequest(
 
 ## Best Practices
 
-1. **Inject clients** through initializers or environment values.
+1. **Inject clients** through initializers or app-owned environment values.
 2. **Use `FVendors` for fast app setup** and smaller products when you need tighter control.
 3. **Prefer live implementations in production**.
 4. **Use mocks, no-op clients, or in-memory cache in tests**.
@@ -324,7 +339,13 @@ let postRequest = try APIRequestBuilder.buildJSONRequest(
 
 ## Example Project
 
-See the [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) repository for a complete app-oriented example.
+This repository includes a repo-local `Demo/` Xcode app that demonstrates the offline foundation path: logging, mock networking, cache-first loading, and UI state updates. The Demo app stays outside `Package.swift` and is not part of the SwiftPM product surface. Tomato UI in the Demo is demo chrome only, not a core FVendors acceptance path.
+
+See the [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) repository for a larger app-oriented example.
+
+## Future Client Gate
+
+New package-owned convenience APIs such as `EnvironmentClient`, `FeatureFlagClient`, `ReachabilityClient`, or `AuthTokenClient` require repeated Demo or real-app proof, test-friendly parity such as noop/mock/live variants where applicable, focused tests, bilingual documentation, and an explicit module-boundary rationale. App-owned SwiftUI `EnvironmentValues` usage remains a supported dependency-injection pattern.
 
 ## License
 

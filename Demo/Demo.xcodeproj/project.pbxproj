@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A11A00012F63000100A0C968 /* FVendors in Frameworks */ = {isa = PBXBuildFile; productRef = A11A00032F63000100A0C968 /* FVendors */; };
 		A11A00022F63000100A0C968 /* FVendors in Frameworks */ = {isa = PBXBuildFile; productRef = A11A00042F63000100A0C968 /* FVendors */; };
+		A11A00062F63000100A0C968 /* FVendorsExt in Frameworks */ = {isa = PBXBuildFile; productRef = A11A00072F63000100A0C968 /* FVendorsExt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A11A00012F63000100A0C968 /* FVendors in Frameworks */,
+				A11A00062F63000100A0C968 /* FVendorsExt in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,6 +122,7 @@
 			name = Demo;
 			packageProductDependencies = (
 				A11A00032F63000100A0C968 /* FVendors */,
+				A11A00072F63000100A0C968 /* FVendorsExt */,
 			);
 			productName = Demo;
 			productReference = 9E914F152F62594600A0C968 /* Demo.app */;
@@ -297,6 +300,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A11A00052F63000100A0C968 /* XCLocalSwiftPackageReference ".." */;
 			productName = FVendors;
+		};
+		A11A00072F63000100A0C968 /* FVendorsExt */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A11A00052F63000100A0C968 /* XCLocalSwiftPackageReference ".." */;
+			productName = FVendorsExt;
 		};
 /* End XCSwiftPackageProductDependency section */
 
