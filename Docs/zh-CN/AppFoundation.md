@@ -39,7 +39,44 @@ let color = Color.f.hex("#3366FF")
 
 ## 推荐 app 接线方式
 
-在 app 边界创建依赖，并通过初始化器注入 service 或 view model：
+在 app 边界创建 app 自己拥有的依赖容器，再把具体 client 注入 service 或
+view model。这个容器应保留在 app target 中，不放进 FVendors：
+
+```swift
+import FVendors
+
+struct AppDependencies: Sendable {
+    let logger: LoggerClient
+    let network: NetworkClient
+    let cache: CacheClient
+
+    static let live = AppDependencies(
+        logger: .live,
+        network: NetworkClient.live.retrying(maxAttempts: 3),
+        cache: .live
+    )
+}
+```
+
+SwiftUI app 可以在 app target 里用 `EnvironmentValues` 暴露这个 app-owned
+container：
+
+```swift
+import SwiftUI
+
+private struct AppDependenciesKey: EnvironmentKey {
+    static let defaultValue = AppDependencies.live
+}
+
+extension EnvironmentValues {
+    var appDependencies: AppDependencies {
+        get { self[AppDependenciesKey.self] }
+        set { self[AppDependenciesKey.self] = newValue }
+    }
+}
+```
+
+View model 仍然应该通过初始化器接收具体 FVendors clients：
 
 ```swift
 import FVendors
@@ -75,6 +112,14 @@ let viewModel = UserViewModel(
 ## Demo App
 
 仓库包含一个 repo-local 的 `Demo/` Xcode app，用来展示基础设施接入路径；它不会作为 target/product 加入 `Package.swift`。Demo 的基础证明路径是离线且确定性的：通过注入 logger、network、cache 展示 network → cache → UI state 行为。
+
+Demo app 现在端到端证明了 app-owned 接线模式：
+
+- `AppDependencies` 定义在 `Demo/` 内，而不是 package 内。
+- `DemoApp` 创建单一依赖容器，并通过 SwiftUI `EnvironmentValues` 注入。
+- `DemoViewModel` 通过容器接收 `LoggerClient`、`NetworkClient` 和 `CacheClient`。
+- Demo tests 验证 logger metadata、mock network 数据和 in-memory cache 可以协同工作。
+- UI helpers 仍然需要显式 `import FVendorsExt`。
 
 Demo 中的 Tomato UI 只是 demo chrome，不属于 FVendors 基础设施验收标准，也不应驱动核心 package API。
 

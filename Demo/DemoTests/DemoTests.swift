@@ -28,9 +28,10 @@ struct DemoTests {
         }
 
         let viewModel = DemoViewModel(
-            logger: .noop,
-            network: network,
-            cache: cache
+            dependencies: .test(
+                network: network,
+                cache: cache
+            )
         )
 
         await viewModel.loadUser()
@@ -74,6 +75,25 @@ struct DemoTests {
         #expect(viewModel.user == expected)
         #expect(viewModel.dataSource == .network)
         #expect(await counter.count() == 2)
+    }
+
+    @Test("Dependency container wires logger network and cache")
+    func dependencyContainerWiresClients() async throws {
+        let expected = DemoUser(id: 2, name: "Alex", email: "alex@example.com")
+        let storage = LogStorage()
+        let dependencies = AppDependencies.test(
+            logger: .collecting(storage: storage),
+            network: .mock(returning: try JSONEncoder().encode(expected)),
+            cache: .inMemory()
+        )
+        let viewModel = DemoViewModel(dependencies: dependencies)
+
+        await viewModel.loadUser()
+        try? await Task.sleep(for: .milliseconds(10))
+
+        #expect(viewModel.user == expected)
+        #expect(viewModel.dataSource == .network)
+        #expect(storage.records.contains { $0.metadata["source"] == "network" })
     }
 
     @Test("Load user reports error state when network fails")

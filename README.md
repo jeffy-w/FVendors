@@ -340,7 +340,7 @@ let postRequest = try APIRequestBuilder.buildJSONRequest(
 
 ## Example Project
 
-This repository includes a repo-local `Demo/` Xcode app that demonstrates the offline foundation path: logging, mock networking, cache-first loading, and UI state updates. The Demo app stays outside `Package.swift` and is not part of the SwiftPM product surface. Tomato UI in the Demo is demo chrome only, not a core FVendors acceptance path.
+This repository includes a repo-local `Demo/` Xcode app that demonstrates the offline foundation path: app-owned dependency wiring, logging, mock networking, cache-first loading, and UI state updates. The Demo app stays outside `Package.swift` and is not part of the SwiftPM product surface. Tomato UI in the Demo is demo chrome only, not a core FVendors acceptance path.
 
 See the [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) repository for a larger app-oriented example.
 

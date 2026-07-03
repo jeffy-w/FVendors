@@ -19,14 +19,22 @@ final class DemoViewModel {
     var statusMessage = "Idle"
     var lastErrorMessage: String?
     var isLoading = false
-    
+
     // Tomato Emojis State
     var tomatoes: [TomatoEmoji] = []
 
+    convenience init(dependencies: AppDependencies) {
+        self.init(
+            logger: dependencies.logger,
+            network: dependencies.network,
+            cache: dependencies.cache
+        )
+    }
+
     init(
-        logger: LoggerClient = .live,
-        network: NetworkClient = DemoViewModel.makeDemoNetworkClient(),
-        cache: CacheClient = .live
+        logger: LoggerClient,
+        network: NetworkClient,
+        cache: CacheClient
     ) {
         self.logger = logger
         self.network = network
@@ -36,7 +44,10 @@ final class DemoViewModel {
     func spawnTomato() {
         let newTomato = TomatoEmoji.random()
         tomatoes.append(newTomato)
-        logger.info("Spawned composite tomato: \(newTomato.eyeType)/\(newTomato.mouthType)")
+        logger.info(
+            "Spawned composite tomato: \(newTomato.eyeType)/\(newTomato.mouthType)",
+            metadata: ["component": "tomato"]
+        )
     }
 
     func clearTomatoes() {
@@ -50,7 +61,7 @@ final class DemoViewModel {
         isLoading = true
         lastErrorMessage = nil
         statusMessage = "Loading..."
-        logger.info("Demo load started")
+        logger.info("Demo load started", metadata: ["flow": "loadUser"])
 
         defer { isLoading = false }
 
@@ -59,7 +70,7 @@ final class DemoViewModel {
                 user = cached
                 dataSource = .cache
                 statusMessage = "Loaded from cache"
-                logger.info("Demo user loaded from cache")
+                logger.info("Demo user loaded from cache", metadata: ["source": "cache"])
                 return
             }
 
@@ -73,7 +84,7 @@ final class DemoViewModel {
             user = fetched
             dataSource = .network
             statusMessage = "Loaded from network"
-            logger.info("Demo user loaded from network")
+            logger.info("Demo user loaded from network", metadata: ["source": "network"])
         } catch {
             let appError = AppError.from(error)
             user = nil

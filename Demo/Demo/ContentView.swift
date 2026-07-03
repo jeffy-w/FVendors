@@ -4,6 +4,7 @@ import FVendors
 import FVendorsExt
 
 struct ContentView: View {
+    @Environment(\.appDependencies) private var dependencies
     @Bindable var viewModel: DemoViewModel
 
     var body: some View {
@@ -58,6 +59,7 @@ struct ContentView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             row("State", viewModel.statusMessage)
                             row("Loading", viewModel.isLoading ? "Yes" : "No")
+                            row("Dependencies", dependencySummary)
                             if let error = viewModel.lastErrorMessage {
                                 Text(error)
                                     .foregroundStyle(.red)
@@ -97,6 +99,10 @@ struct ContentView: View {
             }
             .navigationTitle("Demo")
         }
+    }
+
+    private var dependencySummary: String {
+        "Injected: \(dependencies.summary)"
     }
 
     @ViewBuilder

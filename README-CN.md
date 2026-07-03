@@ -340,7 +340,7 @@ let postRequest = try APIRequestBuilder.buildJSONRequest(
 
 ## 示例项目
 
-仓库包含 repo-local 的 `Demo/` Xcode app，用于展示离线基础设施路径：日志、mock 网络、cache-first 加载和 UI 状态更新。Demo app 保持在 `Package.swift` 之外，不属于 SwiftPM product surface。Demo 中的 Tomato UI 只是 demo chrome，不属于核心 FVendors 验收路径。
+仓库包含 repo-local 的 `Demo/` Xcode app，用于展示离线基础设施路径：app-owned dependency wiring、日志、mock 网络、cache-first 加载和 UI 状态更新。Demo app 保持在 `Package.swift` 之外，不属于 SwiftPM product surface。Demo 中的 Tomato UI 只是 demo chrome，不属于核心 FVendors 验收路径。
 
 可参考 [SwiftUI-Template](https://github.com/jeffy-w/SwiftUI-Template.git) 获取更完整的 app 集成示例。
 
