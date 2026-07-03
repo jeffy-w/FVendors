@@ -195,6 +195,17 @@ let request = try APIRequestBuilder.buildJSONRequest(
 let updatedUser = try await network.request(request, as: User.self)
 ```
 
+### 重试可恢复错误
+
+当 app flow 需要重试临时失败，又不想让业务代码依赖具体网络库时，可以使用 `retrying(maxAttempts:delay:shouldRetry:)`：
+
+```swift
+let network = NetworkClient.live.retrying(maxAttempts: 3, delay: .milliseconds(200))
+let users = try await network.request(request, as: [User].self)
+```
+
+默认策略只重试可恢复的 `AppError`，例如无网络或超时。需要自定义策略时可传入 `shouldRetry`。
+
 ## 测试支持
 
 ### Mock 客户端（返回固定数据）
@@ -408,6 +419,12 @@ extension NetworkClient {
     
     /// 总是失败并返回指定错误
     public static func failing(with error: AppError) -> NetworkClient
+
+    public func retrying(
+        maxAttempts: Int = 3,
+        delay: Duration = .zero,
+        shouldRetry: @escaping @Sendable (Error) -> Bool = { ... }
+    ) -> NetworkClient
 }
 ```
 

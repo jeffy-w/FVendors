@@ -195,6 +195,17 @@ let request = try APIRequestBuilder.buildJSONRequest(
 let updatedUser = try await network.request(request, as: User.self)
 ```
 
+### Retry Recoverable Failures
+
+Use `retrying(maxAttempts:delay:shouldRetry:)` when an app flow should retry transient failures without coupling feature code to a concrete networking library:
+
+```swift
+let network = NetworkClient.live.retrying(maxAttempts: 3, delay: .milliseconds(200))
+let users = try await network.request(request, as: [User].self)
+```
+
+By default, the wrapper retries only recoverable `AppError` values such as no connection or timeout. Pass `shouldRetry` for a custom policy.
+
 ## Testing Support
 
 ### Mock Client (Return Fixed Data)
@@ -408,6 +419,12 @@ extension NetworkClient {
     
     /// Always fails with specified error
     public static func failing(with error: AppError) -> NetworkClient
+
+    public func retrying(
+        maxAttempts: Int = 3,
+        delay: Duration = .zero,
+        shouldRetry: @escaping @Sendable (Error) -> Bool = { ... }
+    ) -> NetworkClient
 }
 ```
 

@@ -159,6 +159,65 @@ struct NetworkClientTests {
         }
     }
 
+
+    @Test("Retrying client retries recoverable errors")
+    func retryingClientRetriesRecoverableErrors() async throws {
+        actor Attempts {
+            var count = 0
+
+            func next() -> Int {
+                count += 1
+                return count
+            }
+        }
+
+        let attempts = Attempts()
+        let expectedData = Data("ok".utf8)
+        let client = NetworkClient.mock { _ in
+            let attempt = await attempts.next()
+            if attempt < 3 {
+                throw AppError.networkError(.timeout)
+            }
+            return expectedData
+        }.retrying(maxAttempts: 3)
+
+        let request = URLRequest(url: URL(string: "https://api.example.com/retry")!)
+        let data = try await client.request(request)
+
+        #expect(data == expectedData)
+        #expect(await attempts.count == 3)
+    }
+
+    @Test("Retrying client does not retry non recoverable errors")
+    func retryingClientDoesNotRetryNonRecoverableErrors() async throws {
+        actor Attempts {
+            var count = 0
+
+            func record() {
+                count += 1
+            }
+        }
+
+        let attempts = Attempts()
+        let expectedError = AppError.networkError(.unauthorized)
+        let client = NetworkClient.mock { _ in
+            await attempts.record()
+            throw expectedError
+        }.retrying(maxAttempts: 3)
+
+        let request = URLRequest(url: URL(string: "https://api.example.com/retry")!)
+        do {
+            _ = try await client.request(request)
+            Issue.record("Should have thrown non-recoverable error")
+        } catch let error as AppError {
+            #expect(error == expectedError)
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+
+        #expect(await attempts.count == 1)
+    }
+
     // MARK: - APIRequestBuilder 测试
 
     @Test("APIRequestBuilder creates GET request correctly")

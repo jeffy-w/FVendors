@@ -13,15 +13,18 @@ extension LoggerClient {
         LoggingSystem.bootstrap(ColoredLogHandler.makeFactory())
 
         return LoggerClient(
-            log: { message, level, file, function, line in
-                var logger = Logger(label: Bundle.main.bundleIdentifier ?? "com.app")
+            logWithMetadata: { message, level, metadata, file, function, line in
+                let logger = Logger(label: Bundle.main.bundleIdentifier ?? "com.app")
 
                 let fileName = URL(fileURLWithPath: file).lastPathComponent
                 let source = "\(fileName):\(line)"
 
-                // 设置元数据
-                logger[metadataKey: "source"] = "\(source)"
-                logger[metadataKey: "function"] = "\(function)"
+                var logMetadata = Logger.Metadata()
+                logMetadata["source"] = "\(source)"
+                logMetadata["function"] = "\(function)"
+                for (key, value) in metadata {
+                    logMetadata[key] = "\(value)"
+                }
 
                 // 映射日志级别
                 let swiftLogLevel: Logger.Level = {
@@ -34,7 +37,14 @@ extension LoggerClient {
                     }
                 }()
 
-                logger.log(level: swiftLogLevel, "\(message)")
+                logger.log(
+                    level: swiftLogLevel,
+                    "\(message)",
+                    metadata: logMetadata,
+                    file: file,
+                    function: function,
+                    line: UInt(line)
+                )
             }
         )
     }()

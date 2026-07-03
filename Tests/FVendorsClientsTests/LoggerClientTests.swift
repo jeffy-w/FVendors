@@ -96,6 +96,32 @@ struct LoggerClientTests {
         #expect(storage.logs[2].1 == .debug)
     }
 
+
+    @Test("Collecting logger captures metadata and call site")
+    func collectingLoggerCapturesMetadataAndCallSite() async {
+        let storage = LogStorage()
+        let logger = LoggerClient.collecting(storage: storage)
+
+        logger.info(
+            "Loaded user",
+            metadata: ["source": "cache", "userID": "42"],
+            file: "Feature/UserViewModel.swift",
+            function: "loadUser()",
+            line: 123
+        )
+
+        try? await Task.sleep(for: .milliseconds(10))
+
+        #expect(storage.records.count == 1)
+        #expect(storage.records[0].message == "Loaded user")
+        #expect(storage.records[0].level == .info)
+        #expect(storage.records[0].metadata["source"] == "cache")
+        #expect(storage.records[0].metadata["userID"] == "42")
+        #expect(storage.records[0].file == "Feature/UserViewModel.swift")
+        #expect(storage.records[0].function == "loadUser()")
+        #expect(storage.records[0].line == 123)
+    }
+
     @Test("Noop logger does not crash")
     func noopLoggerDoesNotCrash() {
         let logger = LoggerClient.noop

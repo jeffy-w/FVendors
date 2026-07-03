@@ -34,8 +34,8 @@ Do not treat FVendors as a routing framework, design system, account/auth/paymen
 
 ## Features
 
-- **Logging**: Structured logging abstractions with a live implementation backed by `swift-log`.
-- **Networking**: A pure-Swift `NetworkClient` abstraction with an Alamofire-powered live implementation.
+- **Logging**: Structured logging abstractions with metadata, call-site forwarding, and a live implementation backed by `swift-log`.
+- **Networking**: A pure-Swift `NetworkClient` abstraction with retry wrappers and an Alamofire-powered live implementation.
 - **Caching**: A file-backed live cache plus in-memory and expiring wrappers for tests and app use.
 - **Error Modeling**: Unified `AppError` and related reason enums for common app flows.
 - **UI Extensions**: Optional SwiftUI/UIKit extensions in `FVendorsExt`.
@@ -169,7 +169,7 @@ struct User: Codable {
     let name: String
 }
 
-let network: NetworkClient = .live
+let network: NetworkClient = .live.retrying(maxAttempts: 3)
 let url = URL(string: "https://api.example.com/users")!
 let request = URLRequest(url: url)
 

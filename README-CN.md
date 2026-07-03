@@ -169,7 +169,7 @@ struct User: Codable {
     let name: String
 }
 
-let network = NetworkClient.live
+let network = NetworkClient.live.retrying(maxAttempts: 3)
 let url = URL(string: "https://api.example.com/users")!
 let request = URLRequest(url: url)
 
